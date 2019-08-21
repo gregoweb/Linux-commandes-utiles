@@ -1,2 +1,465 @@
 # Linux-commandes-utiles
 Commandes debian  redhat/centos
+
+ifconfig
+ip addr show
+
+
+#******
+#* shell multiple / screen
+#******
+screen
+#passer au shell suivant (ouvrir un nouveau shell)
+Ctrl+a ctrl+a
+#quitter screen sans l'arrêter
+Ctrl+a ctrl+d
+#quitter un shell
+exit
+
+#commande à l'exterieur de screen
+#affichage nom des shells en cours
+screen -ls
+#reconnection au dernier shell
+screen -r
+#arreter un script d'un screen en particulier
+screen -X -S "sessionname" stuff "^C"
+#quitter un screen depuis l'exterieur
+screen -X -S "sessionname" quit
+
+
+#Invoquer un programme en tâche de fond :
+#Certains programmes ne rendent pas la main (ouuuuhh c'est null) immédiatement (exemple : la compilation, script lourd etc...).
+#Pour récupérer la main, il suffit de rajouter un & (ET commercial) à la fin de votre commande :
+macommande &
+
+#**************
+#* redemarrer services
+#**************
+service nginx configtest
+service nginx reload
+
+
+
+#*************
+#* Arreter un processus
+#*************
+#recuperer le PID
+ps -ef
+# arreter un process (dans l'exemple 123 est le numero de PID)
+kill 123
+# util pour acceder a un fichier ouvert dans une session innaccessible
+# il suffit de kill le process SSHD ayant ouvert le fichier
+
+
+#*************
+#* NGINX
+#*************
+#Numero de version
+nginx -V
+
+#test de la configuration sans l'appliquer
+nginx -t
+
+#charger la nouvelle conf de nginx sans redemarrer le service
+nginx -s reload
+
+systemctl restart nginx.service
+systemctl start nginx.service
+systemctl stop nginx.service
+
+#******************
+#* sauvegarde site dynamique sous forme statique
+#*******************
+#Attention
+# - toutes fonctions dynamique ne sera pas conserver ex : formulaire de contact
+# - Les images / médias ne sont pas enregistrées
+#
+#Télécharger le site récursivement (-r) avec une pro­fondeur infinie (-linf), convertit les liens pour une consultation en local (-k),
+# rapatrie tout les fichiers néces­saires à l’affichage conve­nable d’une page HTML (-p) et renomme toutes les pages HTML avec l’extension .html (-E) :
+#
+wget -r -linf -k -p -E http://www.domaine.tld/
+
+wget -r -linf -e robots=off -k -p -E http://www.domaine.tld/
+
+
+
+#******************
+#* consultation site web en mode console avec lynx
+#*******************
+#
+lynx -dump luzaka.com
+
+sudo su
+#passer en root sous Ubuntu
+#exit pour sortir du mode root
+
+uname -a
+#donne les infos sur le nom nom et la version du Kernel
+
+uname -m
+#donne le type de kernel
+x86_64 ==> 64-bit kernel
+i686   ==> 32-bit kernel
+
+cat /etc/debian_version
+#donne le numero de version de debian
+#uname -a ; cat /etc/debian_version ; cat /etc/issue
+
+cat /proc/cpuinfo
+#donne les infos processeurs
+
+
+#Liens symbolique
+ln -s cible racourci
+
+#envoi d'email
+mail -s "Objet" "email@fournisseur.pays" < monMessage.txt
+ls -lht | mail -s "Objet" "email@fournisseur.pays"
+echo "Mon corps de message" | mail -s "Mon sujet" "email@fournisseur.pays"
+
+#Compter le nombre de fichier d'un dossier
+ls -1 | wc -l
+
+#Compter les fichier de session magento non-modifiés au cours au cours des 7 derniers jours (modifications antérieurs à 7 jours)
+find /path/to/magento/var/session -name 'sess_*' -type f -mtime +7 | wc -l
+
+#verification d'ouverture / fermeture de ports / etat du firewall
+nmap --unprivileged -p 22,22011,80,8080,443,587 5.196.194.164
+
+#liste des connexions Internet actives
+netstat -ntap
+
+#Compte le nombre de processus PHP en cours (à adapter en fonction de "ps -ef")
+pgrep -c php-cgi
+
+#Compte le nombre de processus apache en cours (à adapter en fonction de "ps -ef")
+pgrep -c apache
+
+#liste les process de l'utilisateur web63
+pgrep -u web63 | xargs ps -f -p
+
+#connaitre la version de PHP installée sur le serveur
+php --version
+
+#*************
+#* Gestion des paquets Debian
+#*************
+#lister les package installé
+dpkg -l
+dpkg -l | grep -i server
+#liste paquet contenant la chaine "send"
+dpkg -l | grep send
+
+#recherche des mises à jours
+apt-get update
+#installation des mises à jours
+apt-get upgrade
+
+#suppression des paquets debutant par samba
+apt-get --purge remove samba*
+
+#? netoyage paquet inutilisé et préinstallé ?
+apt-get clean
+
+#
+apt-get -s, --simulate, --just-print, --dry-run, --recon, --no-act
+           Pas d'action ; simule les événements qui devraient se produire sans
+           effectuer de changement réel sur le système. Élément de
+           configuration : APT::Get::Simulate.
+-u, --show-upgraded
+           Afficher les paquets mis à niveau ; affiche une liste de tous les
+           paquets à mettre à niveau. Élément de configuration :
+           APT::Get::Show-Upgraded.
+
+#Installer un packet .deb
+dpkg -i monPaquet.deb
+
+#************
+#* limites
+#************
+
+#voir utilisation du serveur
+top
+
+#espace disque
+df -h
+
+#Nombre d'inodes utilisés et restants
+df -i
+
+#ext3 32000 fichiers max par dossier (note : session Luzaka 1 900 000 fichiers dans /var/session)
+
+#Affichage des quotas de tous les utilisateurs et groupes
+repquota -avug
+
+#memoire
+free -m
+
+#utilisation espace disque
+du -csh /var/*
+
+du -h /var/RSYNC/ --max-depth=1
+
+
+#bench disque dur
+#ecrit un fichier test de 1GB
+dd bs=1M count=1024 if=/dev/zero of=speedtest conv=fdatasync
+#lit le fichier speedtest ecrit par la commande du haut
+dd if=speedtest of=/dev/null bs=1M count=1024
+#penser a supprimer le fichier speedtest
+rm speedtest
+
+#ecrit un fichier test de 36GB /!\ 6 minutes minimum /!\
+dd bs=1M count=36864 if=/dev/zero of=speedtest conv=fdatasync
+#lit le fichier speedtest ecrit par la commande du haut
+dd if=speedtest of=/dev/null bs=1M count=36000
+
+#localisation des fichiers de conf de mysql
+$ mysqld --help --verbose | less
+
+
+#comparaison du contenu texte de 2 fichier (diffrerences entre 2 versions)
+diff fichier1 fichier2
+
+#comparer deux dossiers sous linux.
+diff -rb dossier1 dossier2 | grep -v "^diff -rb " | sort
+
+#**************
+#* Trouver des fichiers locate
+#**************
+apt-get install locate
+#creation BDD pour locate
+updatedb
+
+#***************
+#* lecture de la derniere à la premiere ligne d'un enorme fichier texte
+#* par exemple un fichier de log saturé
+#***************
+tac nom_gros_fichier | less
+
+#******
+#* Vim
+#******
+#Rechercher vers le bas
+:/marecherche
+
+#Rechercher vers le haut
+:?marecherche
+
+#suivant appuyer sur "n"
+
+
+# Rechercher remplacer par
+
+# via sed
+sed -i "s/Reccherche/Remplace/g" /chemin/fichier
+
+#Suppression de la ligne en mode Normal
+d
+
+#Annulation (u undo) en mode normal
+u
+
+#Retablir en mode normal
+ctrl+r
+
+#***********
+# manipulation texte
+#***********
+
+#Comment chercher et remplacer dans plusieurs fichiers avec sed
+#Pour remplacer "echo htmlentities" par "highlight_string" dans tous les fichiers php du répertoire courant tapez ceci :
+#sed -i 's/echo htmlentities/highlight_string/g' *.php
+
+#Alternative pour un chercher remplacer récursif :
+#find . -name "*.php" -exec sed -i 's/echo htmlentities/highlight_string/g' {} \;
+
+#rechercher un texte dans tous les fichiers du répertoire courant et ses sous dossier et afficher le nom des fichiers où le texte est trouvé
+grep -r -i -l texteRecherche ./
+
+#*******
+#* droits utilisateur
+#*******
+chmod 700 (755 644)
+
+chown user:goup
+
+adduser nom_utilisateur
+
+#************
+# Copie de répertoire
+#*************
+cp -R /source/ /destination/
+
+#********
+#* doublons
+#********
+#genere la liste des "lignes" doublons contenues dans fichier_contenant_doublons.txt
+#les lignes de fichier_contenant_doublons.txt doivent être triées (par ordre alphabetique)
+uniq -d fichier_contenant_doublons.txt
+
+#compte les occurences des doublons
+uniq -c fichier_contenant_doublons.txt
+
+#genere un fichier sans doublons
+uniq fichier_avec_doublons.txt fichier_sans_doublons.txt
+
+#********************
+#* Client FTP NCFTP *
+#********************
+# ncftp -u NomUtilisateur AdresseServeur
+ncftp -u NumUtilisateur siteFTP.pays
+
+#*********
+#* GCC
+#*********
+#compiler un programme c
+gcc monCode.c -o MONPROG
+
+#*********
+#* MySQL en ligne de commande
+#*********
+mysql -u root -p
+#une fois MySQL ouvert
+#voir les noms des BDD
+SHOW DATABASES;
+#voir les tables de la BDD
+SHOW TABLES;
+#choisir une BDD
+USE `Nom_BDD`;
+#owncloud modification du mot de passe admin par new-password
+UPDATE users SET password = 'MonSuperMotDePasse' WHERE uid = 'admin';
+
+#*********
+#* Archive Extraction Décompression
+#*********
+# extraire tar.gz
+tar zxvf nom_du_fichier.tar.gz
+
+# extraire zip
+unzip monfichier.zip
+
+# extraire gzip
+gunzip monfichier.gzip
+
+
+#**********
+#* DDOS
+#**********
+#affiche le nombre de requete par IP (permet de déterminer si une attaque est en cours)
+sed -e 's/\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*$/\1/' -e t -e d /var/log/ispconfig/httpd/monsite.com/20151127-access.log | sort | uniq -c
+
+
+#**********
+#* Bactrack 5
+#**********
+# mettre le clavier en francais
+setxkbmap fr
+
+
+#****************
+#* Command Magic
+#****************
+# Find out if any duplicate image files exist in the current directory.
+shasum *.jpg | awk {'print $1'} | sort | uniq -c | grep -v " 1 "
+
+#***************
+#* Postfix
+#****************
+# Supprimer toutes les files d'attentes (supprime tous les e-mail envoyés en attente et empêche donc leur envoie)
+postsuper -d ALL
+
+#**************
+#* incron
+#* -> /etc/init.d/nginx reload a cchaque modif de vhost
+#**************
+#http://dmesg.fr/categorie-logiciels/75-incron-executer-des-actions-selon-des-evenements-du-systeme-de-fichiers
+#https://doc.ubuntu-fr.org/incron
+
+#installation incron
+apt-get install incron
+
+#ajout utilisateurs autorise ex:
+#web93
+#web94
+#web61
+#web109
+vim /etc/incron.allow
+[DEBUT FIC incron.allow]
+web93
+web94
+web61
+web109
+web126
+[FIN FIC incron.allow]
+
+#ajout d'une tache
+vim /etc/incron.d/nginxReload
+[DEBUT FIC nginxReload]
+/etc/nginx/sites-available/monsite.com.vhost IN_MODIFY /etc/init.d/nginx reload
+[FIN FIC nginxReload]
+
+
+#*****************
+#* CENTOS7 REHL7 *
+#*****************
+#conf reseau
+nmcli
+nmtui
+nm-connection-editor
+
+#yum
+# http://quick-tutoriel.com/yum-le-gestionnaire-de-paquets-de-centos/
+#repository dans
+cd /etc/yum.repos.d
+
+#verification des maj
+yum update yum
+#installation des maj
+yum update
+#liste des paquet à mettre à jours sans effectuer la maj
+yum check-update
+
+#rechercher un paquet
+yum list <nom_paquet> par exemple yum list samba*
+yum search <mot_clef> par exemple yum search "mysql database"
+
+#You can discover which package contains the program you want using yum provides:
+yum provides /usr/bin/ab
+#Then you will see that ab is in the httpd-tools package.
+#And now you can install it:
+#yum install httpd-tools
+
+#installer paquet
+yum install <nom_paquet> par exemple yum install perl
+
+#Liste les paquet installés
+yum list installed
+
+#Pour supprimer un paquet, utiliser la commande :
+yum remove <nom_paquet> par exemple yum remove perl
+
+#Pour effectuer une mise à jour sélective, utiliser la commande :
+yum –exclude=<nom_paquet> update
+
+#Dans des cas très précis, comme par exemple si vous voulez mettre à jour votre système sans mettre à jour le noyau de votre distribution vous pouvez utiliser la commande suivante :
+yum –exclude=kernel* update
+
+#Autre commande pratique pour exclure temporairement un dépôt, lors de la mise àjour du système :
+yum –disablerepo=<nom_du_dépôt> update
+
+#Autre commande utile pour voir la liste des dépôts configurés :
+yum repolist all
+
+#De temps en temps il est nécessaire de faire un peu de place sur le disque dur en supprimant ce dont yum n’a plus besoin, pour cela vous pouvez utiliser la commande :
+yum clean all
+
+#Le fichier de log de YUM est situé dans /var/log/yum.log et permet de suivre toutes les modifications.
+#Les fichiers rapatriés par yum se trouvent dans /var/cache/yum.
+
+#SELinux
+#etat de SELinux
+sestatus
+#Passage en Mode permissif
+sudo setenforce 0
+#https://linuxize.com/post/how-to-disable-selinux-on-centos-7/
